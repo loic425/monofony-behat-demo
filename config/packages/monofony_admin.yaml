@@ -1,0 +1,40 @@
+imports:
+    - { resource: '@SyliusUiBundle/Resources/config/app/config.yml' }
+
+framework:
+    assets:
+        json_manifest_path: '%kernel.project_dir%/public/assets/backend/manifest.json'
+        packages:
+            backend:
+                json_manifest_path: '%kernel.project_dir%/public/assets/backend/manifest.json'
+
+sylius_ui:
+    events:
+        sylius.admin.layout.topbar_left:
+            blocks:
+                sidebar_toggle:
+                    template: "backend/layout/_sidebar_toggle.html.twig"
+                    priority: 30
+                search:
+                    template: "backend/layout/_search.html.twig"
+                    priority: 10
+
+        sylius.admin.layout.topbar_right:
+            blocks:
+                security:
+                    template: "backend/layout/_security.html.twig"
+                    priority: 10
+
+sonata_block:
+    blocks:
+        sonata.block.service.template:
+            settings:
+                customer: ~
+                form: ~
+                resource: ~
+                resources: ~
+
+twig:
+    globals:
+        app_name_meta:
+            version: !php/const App\Kernel::VERSION

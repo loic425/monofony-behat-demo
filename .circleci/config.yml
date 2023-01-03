@@ -1,0 +1,118 @@
+version: 2.1
+orbs:
+    browser-tools: circleci/browser-tools@1.3.0
+jobs:
+    build:
+        docker:
+            # Specify the version you desire here
+            -   image: cimg/php:8.1-browsers
+                environment:
+                    - APP_ENV: test
+                    - IS_DOCTRINE_ORM_SUPPORTED: true
+                    - MONOFONY_BUILD_DIR: etc/build
+                    - DATABASE_URL: mysql://root@127.0.0.1:3306/monofony_%kernel.environment%?serverVersion=5.7
+
+            # Specify service dependencies here if necessary
+            # CircleCI maintains a library of pre-built images
+            # documented at https://circleci.com/docs/2.0/circleci-images/
+            # Using the RAM variation mitigates I/O contention
+            # for database intensive operations.
+            - image: cimg/mysql:5.7
+            #
+            # - image: redis:2.8.19
+
+        steps:
+            - browser-tools/install-chrome
+            - checkout
+            -   run:
+                    name: Install nvm
+                    command: |
+                        (cd .. && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.36.0/install.sh | bash && echo 'export NVM_DIR=$HOME/.nvm' >> $BASH_ENV && echo 'source $NVM_DIR/nvm.sh' >> $BASH_ENV)
+
+            -   run:
+                    name: Set node to version required by application for future circleci steps
+                    command: |
+                        nvm install 12
+                        NODE_VERSION=$(node -v)
+                        nvm alias default ${NODE_VERSION//v}
+
+            -   run:
+                    name: Check current version of node
+                    command: node -v
+
+            -   run:
+                    name: Install yarn
+                    command: npm install -g yarn
+
+            -   run: sudo apt update
+
+            # Download and cache dependencies
+#            -   restore_cache:
+#                    keys:
+#                        # "composer.lock" can be used if it is committed to the repo
+#                        - v1-dependencies-{{ checksum "composer.json" }}
+#                        # fallback to using the latest cache if no exact match is found
+#                        - v1-dependencies-
+
+            -   run: echo -e "memory_limit = -1" | sudo tee /etc/php.d/memory-limit.ini > /dev/null
+            -   run: composer install -n --prefer-dist
+
+#            -   save_cache:
+#                    key: v1-dependencies-{{ checksum "composer.json" }}
+#                    paths:
+#                        - ./vendor
+            -   restore_cache:
+                    keys:
+                        - node-v1-{{ checksum "package.json" }}
+                        - node-v1-
+            -   run: yarn install
+            -   save_cache:
+                    key: node-v1-{{ checksum "package.json" }}
+                    paths:
+                        - node_modules
+
+            # prepare the environment
+            -   run: composer dump-env test
+            -   run: bin/console doctrine:database:create -vvv
+            -   run: APP_DEBUG=1 APP_ENV=dev ./bin/console cache:warmup -vvv # For PHPStan
+            -   run: bin/console doctrine:migrations:migrate -n -vv
+            -   run: bin/console assets:install public -vvv
+            -   run: bin/console cache:warmup -vvv
+            -   run: yarn build
+            -   run:
+                    name: Configure display
+                    command: |
+                        /sbin/start-stop-daemon --start --quiet --pidfile /tmp/xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1680x1050x16
+                        export DISPLAY=:99
+            -   run:
+                    name: Download Symfony CLI
+                    command: |
+                        wget https://get.symfony.com/cli/installer -O - | bash
+            -   run:
+                    name: Download Behat Drivers
+                    command: vendor/bin/bdi detect drivers
+            -   run:
+                    name: Run Selenium
+                    command: vendor/bin/selenium-server-standalone -Dwebdriver.chrome.driver=drivers/chromedriver
+                    background: true
+            -   run:
+                    name: Run webserver
+                    command: |
+                        ~/.symfony/bin/symfony server:ca:install
+                        ~/.symfony/bin/symfony server:start --port=8080 --dir=public --force-php-discovery --daemon
+
+            # run tests
+            -   run: composer validate --strict
+            -   run: ~/.symfony/bin/symfony security:check
+            -   run: bin/console doctrine:schema:validate -vvv
+            -   run: bin/console lint:twig templates
+            -   run: bin/console lint:yaml config --parse-tags
+            -   run: phpdbg -qrr vendor/bin/phpspec run --no-interaction -f dot
+            -   run: vendor/bin/phpstan analyse -c phpstan.neon -l 1 src
+            -   run: vendor/bin/psalm --show-info=false
+            -   run: vendor/bin/phpunit
+            -   run: bin/console app:install --no-interaction -vvv
+            -   run: bin/console doctrine:fixtures:load --no-interaction
+            -   run: vendor/bin/behat --strict -vvv --no-interaction -f progress || vendor/bin/behat --strict -vvv --no-interaction -f progress --rerun
+            -   run: (bin/console doctrine:migrations:migrate first --no-interaction && bin/console doctrine:migrations:migrate latest --no-interaction)
+            -   run: composer dump-env PROD && APP_ENV=PROD composer install --no-dev --no-interaction --prefer-dist

@@ -1,0 +1,297 @@
+name: Packs
+
+on:
+    push: ~
+    pull_request: ~
+    release:
+        types: [created]
+    schedule:
+        -
+            cron: "0 1 * * 6" # Run at 1am every Saturday
+
+jobs:
+    test-application-with-api-pack:
+        runs-on: ubuntu-18.04
+
+        name: "Test application with api-pack (PHP ${{ matrix.php }}, MySQL ${{ matrix.mysql }})"
+
+        timeout-minutes: 25
+
+        strategy:
+            fail-fast: false
+            matrix:
+                php: [ "8.1" ]
+                mysql: [ 5.7 ]
+
+        env:
+            APP_ENV: test
+            DATABASE_URL: "mysql://root:root@127.0.0.1/monofony?serverVersion=${{ matrix.mysql }}"
+            IS_DOCTRINE_ORM_SUPPORTED: true
+            CORS_ALLOW_ORIGIN: "*"
+            MAILER_DSN: null://null
+
+        steps:
+            -   uses: actions/checkout@v2
+
+            -   name: Shutdown default MySQL
+                run: sudo service mysql stop
+
+            -   name: Setup MySQL
+                uses: mirromutth/mysql-action@v1.1
+                with:
+                    mysql version: "${{ matrix.mysql }}"
+                    mysql root password: "root"
+
+            -   name: Setup PHP
+                uses: shivammathur/setup-php@v2
+                with:
+                    php-version: "${{ matrix.php }}"
+                    ini-values: date.timezone=Europe/Paris, opcache.enable=1, opcache.enable_cli=1, opcache.memory_consumption=256, opcache.max_accelerated_files=32531, opcache.interned_strings_buffer=8, opcache.validate_timestamps=0, opcache.save_comments=1, opcache.fast_shutdown=0
+                    extensions: intl, gd, opcache, mysql, pdo_mysql, :xdebug
+                    tools: symfony
+                    coverage: none
+
+            -
+                name: Get Composer cache directory
+                id: composer-cache
+                run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+            -
+                name: Cache Composer
+                uses: actions/cache@v2
+                with:
+                    path: ${{ steps.composer-cache.outputs.dir }}
+                    key: ${{ runner.os }}-php-${{ matrix.php }}-symfony-${{ matrix.symfony }}-composer-${{ hashFiles('**/composer.json **/composer.lock') }}
+                    restore-keys: |
+                        ${{ runner.os }}-php-${{ matrix.php }}-symfony-${{ matrix.symfony }}-composer-
+
+            -
+                name: Install PHP dependencies
+                run: composer install --no-interaction
+
+            -
+                name: Dump the environment
+                run: |
+                    echo "DATABASE_URL=$DATABASE_URL" >> .env.$APP_ENV
+                    composer dump-env $APP_ENV || echo APP_ENV=$APP_ENV > .env.local
+
+            -
+                name: Prepare application database
+                run: |
+                    APP_DEBUG=1 bin/console doctrine:database:create -vvv
+                    bin/console doctrine:migrations:migrate -n -vvv
+
+            -
+                name: Install api-pack
+                run: |
+                    sed -i -e "s/\#\$syliusResources/\$syliusResources/g" config/services.yaml
+                    sed -i -e "s/\#success_handler/success_handler/g" config/packages/security.yaml
+                    sed -i -e "s/\#failure_handler/failure_handler/g" config/packages/security.yaml
+                    sed -i -e "s/\#entry_point/entry_point/g" config/packages/security.yaml
+                    sed -i -e "s/\#jwt/jwt/g" config/packages/security.yaml
+                    sed -i -e "s/\#refresh_jwt/refresh_jwt/g" config/packages/security.yaml
+                    sed -i -e "s/\#check_path/check_path/g" config/packages/security.yaml
+                    cat >> src/Entity/RefreshToken.php<< EOF
+                    <?php
+                    
+                    namespace App\Entity;
+                    
+                    use Doctrine\ORM\Mapping as ORM;
+                    use Gesdinet\JWTRefreshTokenBundle\Entity\RefreshToken as BaseRefreshToken;
+                    
+                    #[ORM\Entity]
+                    #[ORM\Table(name: 'refresh_tokens')]
+                    class RefreshToken extends BaseRefreshToken
+                    {
+                    }
+                    EOF
+                    composer require monofony/api-pack ^0.9@alpha
+
+            -
+                name: Run PHPUnit
+                run: vendor/bin/phpunit
+
+    test-application-with-front-pack:
+        runs-on: ubuntu-18.04
+
+        name: "Test application with front-pack (PHP ${{ matrix.php }}, MySQL ${{ matrix.mysql }})"
+
+        timeout-minutes: 25
+
+        strategy:
+            fail-fast: false
+            matrix:
+                php: [ 8.1 ]
+                node: [ 12.x ]
+                mysql: [ 5.7 ]
+                behat_driver: ["panther", "chrome"]
+
+        env:
+            APP_ENV: test
+            DATABASE_URL: "mysql://root:root@127.0.0.1/monofony?serverVersion=${{ matrix.mysql }}"
+            MAILER_DSN: null://null
+
+        steps:
+            -   uses: actions/checkout@v2
+
+            -   name: Shutdown default MySQL
+                run: sudo service mysql stop
+
+            -   name: Setup MySQL
+                uses: mirromutth/mysql-action@v1.1
+                with:
+                    mysql version: "${{ matrix.mysql }}"
+                    mysql root password: "root"
+
+            -   name: Setup PHP
+                uses: shivammathur/setup-php@v2
+                with:
+                    php-version: "${{ matrix.php }}"
+                    ini-values: date.timezone=Europe/Paris, opcache.enable=1, opcache.enable_cli=1, opcache.memory_consumption=256, opcache.max_accelerated_files=32531, opcache.interned_strings_buffer=8, opcache.validate_timestamps=0, opcache.save_comments=1, opcache.fast_shutdown=0
+                    extensions: intl, gd, opcache, mysql, pdo_mysql, :xdebug
+                    tools: symfony
+                    coverage: none
+
+            -
+                name: Get Composer cache directory
+                id: composer-cache
+                run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+            -
+                name: Cache Composer
+                uses: actions/cache@v2
+                with:
+                    path: ${{ steps.composer-cache.outputs.dir }}
+                    key: ${{ runner.os }}-php-${{ matrix.php }}-symfony-${{ matrix.symfony }}-composer-${{ hashFiles('**/composer.json **/composer.lock') }}
+                    restore-keys: |
+                        ${{ runner.os }}-php-${{ matrix.php }}-symfony-${{ matrix.symfony }}-composer-
+
+            -
+                name: Install PHP dependencies
+                run: composer install --no-interaction
+
+            -
+                name: Dump the environment
+                run: |
+                    echo "DATABASE_URL=$DATABASE_URL" >> .env.$APP_ENV
+                    composer dump-env $APP_ENV || echo APP_ENV=$APP_ENV > .env.local
+
+            -
+                name: Install front-pack
+                run: |
+                    sed -i -e "s/\#- suites/\- suites/g" config/behat/suites.yaml
+                    sed -i -e 's/\/\/ const frontendConfig/const frontendConfig/' webpack.config.js
+                    sed -i -e 's/module\.exports \= \[backendConfig\]\;/\/\/ module\.exports \= \[backendConfig\]\;/' webpack.config.js
+                    sed -i -e 's/\/\/ module\.exports \= \[backendConfig, frontendConfig\]\;/module\.exports \= \[backendConfig, frontendConfig\]\;/' webpack.config.js
+                    composer require monofony/front-pack ^0.9@alpha
+
+            -
+                name: Install certificates
+                run: symfony server:ca:install
+
+            -
+                name: Configure Behat driver
+                run: |
+                    sed -i -e 's/javascript_session: chrome/javascript_session: ${{ matrix.behat_driver }}/g' behat.yml.dist
+
+            -
+                name: Run Chrome Headless
+                run: google-chrome-stable --enable-automation --disable-background-networking --no-default-browser-check --no-first-run --disable-popup-blocking --disable-default-apps --disable-translate --disable-extensions --no-sandbox --enable-features=Metal --headless --remote-debugging-port=9222 --window-size=2880,1800 --proxy-server='direct://' --proxy-bypass-list='*' https://127.0.0.1 > /dev/null 2>&1 &
+
+            -
+                name: Install behat driver
+                if: matrix.behat_driver != 'chrome_headless'
+                run: vendor/bin/bdi detect drivers
+
+            -
+                name: Run Selenium
+                if: matrix.behat_driver == 'chrome'
+                run: vendor/bin/selenium-server-standalone -Dwebdriver.chrome.driver=drivers/chromedriver > /dev/null 2>&1 &
+
+            -
+                name: Setup Node
+                uses: actions/setup-node@v1
+                with:
+                    node-version: "${{ matrix.node }}"
+
+            -
+                name: Get Yarn cache directory
+                id: yarn-cache
+                run: echo "::set-output name=dir::$(yarn cache dir)"
+
+            -
+                name: Cache Yarn
+                uses: actions/cache@v2
+                with:
+                    path: ${{ steps.yarn-cache.outputs.dir }}
+                    key: ${{ runner.os }}-node-${{ matrix.node }}-yarn-${{ hashFiles('**/package.json **/yarn.lock') }}
+                    restore-keys: |
+                        ${{ runner.os }}-node-${{ matrix.node }}-yarn-
+
+            -
+                name: Install JS dependencies
+                run: yarn install
+
+            -
+                name: Validate Yarn packages
+                run: yarn check
+
+            -
+                name: Dump the environment
+                run: |
+                    echo "DATABASE_URL=$DATABASE_URL" >> .env.$APP_ENV
+                    composer dump-env $APP_ENV
+
+            -
+                name: Warmup cache
+                run: bin/console cache:warmup
+
+            -
+                name: Run webserver
+                run: symfony server:start --port=8080 --dir=public --daemon
+
+            -
+                name: Prepare application database
+                run: |
+                    APP_DEBUG=1 bin/console doctrine:database:create -vvv
+                    bin/console doctrine:migrations:migrate -n -vvv
+
+            -
+                name: Build assets
+                run: |
+                    bin/console assets:install public -vvv
+                    yarn build
+
+            -
+                name: Run PHPSpec
+                run: phpdbg -qrr vendor/bin/phpspec run --no-interaction -f dot
+
+            -
+                name: Run CLI Behat
+                run: vendor/bin/behat --colors --strict --no-interaction -vvv -f progress --tags="@cli && ~@todo" || vendor/bin/behat --strict --no-interaction -vvv -f progress --tags="@cli && ~@todo" --rerun
+
+            -
+                name: Run non-JS Behat
+                run: vendor/bin/behat --colors --strict --no-interaction -vvv -f progress --tags="~@javascript && ~@todo && ~@cli" || vendor/bin/behat --strict --no-interaction -vvv -f progress --tags="~@javascript && ~@todo && ~@cli" --rerun
+
+            -
+                name: Run JS Behat
+                run: vendor/bin/behat --colors --strict --no-interaction -vvv -f progress --tags="@javascript && ~@todo && ~@cli" || vendor/bin/behat --colors --strict --no-interaction -vvv -f progress --tags="@javascript && ~@todo && ~@cli" --rerun || vendor/bin/behat --colors --strict --no-interaction -vvv -f progress --tags="@javascript && ~@todo && ~@cli" --rerun
+
+            -
+                name: Upload Behat logs
+                uses: actions/upload-artifact@v2
+                if: failure()
+                with:
+                    name: "Behat logs (PHP ${{ matrix.php }})"
+                    path: etc/build/
+                    if-no-files-found: ignore
+
+            -
+                name: Upload Symfony logs
+                uses: actions/upload-artifact@v2
+                if: failure()
+                with:
+                    name: "Symfony logs (PHP ${{ matrix.php }})"
+                    path: var/log/
+                    if-no-files-found: ignore
