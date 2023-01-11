@@ -5,6 +5,6 @@ sylius_resource:
 
     # Configure your resources
     resources:
-        #app.book:
-            #classes:
-                #model: App\Entity\Book
+        app.book:
+            classes:
+                model: App\Entity\Book
