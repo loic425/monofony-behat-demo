@@ -17,7 +17,7 @@ final class CreatePage extends AbstractCreatePage
     protected function getDefinedElements(): array
     {
         return [
-            'name' => '#sylius_resource_name',
+            'name' => '#book_name',
         ];
     }
 }

@@ -8,3 +8,4 @@ sylius_resource:
         app.book:
             classes:
                 model: App\Entity\Book
+                form: App\Form\BookType
