@@ -23,6 +23,7 @@ final class ManagingBooksContext implements Context
 
     /**
      * @When I want to browse books
+     * @Given I am browsing books
      */
     public function iWantToBrowseBooks(): void
     {
@@ -78,6 +79,14 @@ final class ManagingBooksContext implements Context
     }
 
     /**
+     * @When I delete book with name :name
+     */
+    public function iDeleteBookWithName(string $name): void
+    {
+        $this->indexPage->deleteResourceOnPage(['name' => $name]);
+    }
+
+    /**
      * @Then there should be :amount books in the list
      */
     public function thereShouldBeBooksInTheList(int $amount): void
@@ -102,5 +111,15 @@ final class ManagingBooksContext implements Context
         $this->indexPage->open();
 
         Assert::true($this->indexPage->isSingleResourceOnPage(['name' => $name]));
+    }
+
+    /**
+     * @Then there should not be :name book anymore
+     */
+    public function thereShouldNotBeBookAnymore(string $name): void
+    {
+        $this->indexPage->open();
+
+        Assert::false($this->indexPage->isSingleResourceOnPage(['name' => $name]));
     }
 }
