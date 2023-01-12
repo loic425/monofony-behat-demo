@@ -7,11 +7,13 @@ namespace App\Tests\Behat\Context\Setup;
 use App\Entity\Book;
 use Behat\Behat\Context\Context;
 use Doctrine\ORM\EntityManagerInterface;
+use Monofony\Bridge\Behat\Service\SharedStorageInterface;
 
 final class BookContext implements Context
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
+        private SharedStorageInterface $sharedStorage,
     ) {
     }
 
@@ -25,5 +27,7 @@ final class BookContext implements Context
 
         $this->entityManager->persist($book);
         $this->entityManager->flush();
+
+        $this->sharedStorage->set('book', $book);
     }
 }
