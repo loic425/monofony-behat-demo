@@ -10,6 +10,6 @@ default:
                 #- App\Tests\Behat\Context\Transform\SharedStorageContext
 
                 - App\Tests\Behat\Context\Ui\Backend\ManagingBooksContext
-                #- App\Tests\Behat\Context\Ui\Backend\NotificationContext
+                - App\Tests\Behat\Context\Ui\Backend\NotificationContext
             filters:
                 tags: "@managing_books&&@ui"
