@@ -8,6 +8,7 @@ use App\Repository\BookRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Sylius\Component\Resource\Annotation\SyliusCrudRoutes;
 use Sylius\Component\Resource\Model\ResourceInterface;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 #[ORM\Entity(repositoryClass: BookRepository::class)]
 #[SyliusCrudRoutes(
@@ -26,6 +27,7 @@ class Book implements ResourceInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[NotBlank]
     private ?string $name = null;
 
     public function getId(): ?int

@@ -10,6 +10,7 @@ use App\Tests\Behat\Page\Backend\Book\IndexPage;
 use App\Tests\Behat\Page\Backend\Book\UpdatePage;
 use Behat\Behat\Context\Context;
 use Behat\Behat\Tester\Exception\PendingException;
+use Monofony\Component\Core\Formatter\StringInflector;
 use Webmozart\Assert\Assert;
 
 final class ManagingBooksContext implements Context
@@ -48,10 +49,11 @@ final class ManagingBooksContext implements Context
 
     /**
      * @When I specify its name as :name
+     * @When I do not specify any name
      */
-    public function iSpecifyItsNameAs(string $name): void
+    public function iSpecifyItsNameAs(?string $name = null): void
     {
-        $this->createPage->nameIt($name);
+        $this->createPage->nameIt($name ?? '');
     }
 
     /**
@@ -63,7 +65,7 @@ final class ManagingBooksContext implements Context
     }
 
     /**
-     * @When I add it
+     * @When I (try to) add it
      */
     public function iAddIt(): void
     {
@@ -121,5 +123,13 @@ final class ManagingBooksContext implements Context
         $this->indexPage->open();
 
         Assert::false($this->indexPage->isSingleResourceOnPage(['name' => $name]));
+    }
+
+    /**
+     * @Then I should be notified that :element is required
+     */
+    public function iShouldBeNotifiedThatElementIsRequired(string $element): void
+    {
+        Assert::eq($this->createPage->getValidationMessage(StringInflector::nameToCode($element)), 'This value should not be blank.');
     }
 }

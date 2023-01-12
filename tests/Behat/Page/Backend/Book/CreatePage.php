@@ -13,4 +13,11 @@ final class CreatePage extends AbstractCreatePage
     {
         return 'app_backend_book_create';
     }
+
+    protected function getDefinedElements(): array
+    {
+        return [
+            'name' => '#sylius_resource_name',
+        ];
+    }
 }
