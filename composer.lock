@@ -9982,16 +9982,16 @@
         },
         {
             "name": "symfony/validator",
-            "version": "v6.1.9",
+            "version": "v6.2.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/validator.git",
-                "reference": "6c63676e7d169fcf48902fd695ad47a7e4c90ed2"
+                "reference": "0ebfbe384790e61147e3d7f4aa0afbd6190198c4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/validator/zipball/6c63676e7d169fcf48902fd695ad47a7e4c90ed2",
-                "reference": "6c63676e7d169fcf48902fd695ad47a7e4c90ed2",
+                "url": "https://api.github.com/repos/symfony/validator/zipball/0ebfbe384790e61147e3d7f4aa0afbd6190198c4",
+                "reference": "0ebfbe384790e61147e3d7f4aa0afbd6190198c4",
                 "shasum": ""
             },
             "require": {
@@ -10015,7 +10015,7 @@
             },
             "require-dev": {
                 "doctrine/annotations": "^1.13|^2",
-                "egulias/email-validator": "^2.1.10|^3",
+                "egulias/email-validator": "^2.1.10|^3|^4",
                 "symfony/cache": "^5.4|^6.0",
                 "symfony/config": "^5.4|^6.0",
                 "symfony/console": "^5.4|^6.0",
@@ -10070,7 +10070,7 @@
             "description": "Provides tools to validate values",
             "homepage": "https://symfony.com",
             "support": {
-                "source": "https://github.com/symfony/validator/tree/v6.1.9"
+                "source": "https://github.com/symfony/validator/tree/v6.2.5"
             },
             "funding": [
                 {
@@ -10086,7 +10086,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-12-22T17:54:54+00:00"
+            "time": "2023-01-20T17:45:48+00:00"
         },
         {
             "name": "symfony/var-dumper",
