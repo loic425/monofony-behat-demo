@@ -4,10 +4,18 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use App\Repository\BookRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Sylius\Component\Resource\Annotation\SyliusCrudRoutes;
 use Sylius\Component\Resource\Model\ResourceInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
 #[ORM\Entity(repositoryClass: BookRepository::class)]
@@ -19,6 +27,15 @@ use Symfony\Component\Validator\Constraints\NotBlank;
     grid: 'app_book',
     except: ['show'],
 )]
+#[ApiResource(
+    normalizationContext: ['groups' => 'book:read']
+)]
+#[Get]
+#[GetCollection]
+#[Post]
+#[Put]
+#[Patch]
+#[Delete]
 class Book implements ResourceInterface
 {
     #[ORM\Id]
@@ -28,6 +45,7 @@ class Book implements ResourceInterface
 
     #[ORM\Column(length: 255)]
     #[NotBlank]
+    #[Groups(['book:read'])]
     private ?string $name = null;
 
     public function getId(): ?int
@@ -40,7 +58,7 @@ class Book implements ResourceInterface
         return $this->name;
     }
 
-    public function setName(string $name): self
+    public function setName(?string $name): self
     {
         $this->name = $name;
 
