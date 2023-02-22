@@ -1,4 +1,6 @@
 imports:
+    - suites/api/book/managing_books.yaml
+
     - suites/cli/installer.yaml
 
     # Uncomment these lines if you use monofony/front-pack

@@ -8,7 +8,7 @@ Feature: Editing a book
         Given there is a book with name "Shinning"
         And I am logged in as an administrator
 
-    @ui
+    @ui @api
     Scenario: Renaming a book
         When I want to edit this book
         And I change its name to "Carrie"

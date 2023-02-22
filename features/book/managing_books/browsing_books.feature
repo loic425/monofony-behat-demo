@@ -9,7 +9,7 @@ Feature: Browsing books
         And there is also a book with name "Carrie"
         And I am logged in as an administrator
 
-    @ui
+    @ui @api
     Scenario: Browsing books in the admin panel
         When I want to browse books
         Then there should be 2 books in the list

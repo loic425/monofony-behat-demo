@@ -7,7 +7,7 @@ Feature: Adding a new book
     Background:
         Given I am logged in as an administrator
 
-    @ui
+    @ui @api
     Scenario: Adding a new book
         Given I want to create a new book
         When I specify its name as "Shinning"

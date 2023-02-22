@@ -13,3 +13,12 @@ services:
 
     App\Tests\Behat\:
         resource: '../tests/Behat/*'
+
+    App\Tests\Behat\Client\ApiPlatformClient:
+        arguments:
+            $client: '@test.client'
+            $authorizationHeader: 'Authorization'
+
+    App\Tests\Behat\Client\RequestFactory:
+        arguments:
+            $apiUrlPrefix: '/api'

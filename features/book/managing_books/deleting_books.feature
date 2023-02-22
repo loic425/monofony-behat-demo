@@ -9,7 +9,7 @@ Feature: Deleting a book
         And there is also a book with name "Carrie"
         And I am logged in as an administrator
 
-    @ui
+    @ui @api
     Scenario: Deleting a book
         Given I am browsing books
         When I delete book with name "Shinning"

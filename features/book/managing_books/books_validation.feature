@@ -7,7 +7,7 @@ Feature: Books validation
     Background:
         Given I am logged in as an administrator
 
-    @ui
+    @ui @api
     Scenario: Trying to add a new book without specifying its name
         When I want to create a new book
         And I do not specify any name
