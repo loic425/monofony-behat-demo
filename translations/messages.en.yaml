@@ -1,9 +1,12 @@
 app:
     ui:
         avatar: Avatar
+        books: Books
         create_user: Create an user
+        edit_book: Edit book
         forgotten_password: Forgotten password
         legal_notices: Legal notices
+        new_book: New book
         overview_of_your_website: Overview of you website
         search_customers: Search customers
         validate: Validate

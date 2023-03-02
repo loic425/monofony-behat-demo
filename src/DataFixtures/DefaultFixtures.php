@@ -6,6 +6,7 @@ namespace App\DataFixtures;
 
 use App\Story\DefaultAdministratorsStory;
 use App\Story\DefaultAppUsersStory;
+use App\Story\DefaultBooksStory;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -16,6 +17,7 @@ class DefaultFixtures extends Fixture implements FixtureGroupInterface
     {
         DefaultAdministratorsStory::load();
         DefaultAppUsersStory::load();
+        DefaultBooksStory::load();
     }
 
     public static function getGroups(): array
