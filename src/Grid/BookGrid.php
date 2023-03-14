@@ -33,7 +33,7 @@ final class BookGrid extends AbstractGrid implements ResourceAwareGridInterface
         $gridBuilder
             ->orderBy('name')
             ->addFilter(
-                StringFilter::create('search', ['name'])
+                StringFilter::create(name: 'search', fields: ['name'])
                     ->setLabel('Search')
             )
             ->addField(

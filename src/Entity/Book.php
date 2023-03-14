@@ -48,6 +48,10 @@ class Book implements ResourceInterface
     #[Groups(['book:read'])]
     private ?string $name = null;
 
+    #[ORM\Column(type: 'string')]
+    #[NotBlank]
+    private ?string $slug = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -58,10 +62,18 @@ class Book implements ResourceInterface
         return $this->name;
     }
 
-    public function setName(?string $name): self
+    public function setName(?string $name): void
     {
         $this->name = $name;
+    }
 
-        return $this;
+    public function getSlug(): ?string
+    {
+        return $this->slug;
+    }
+
+    public function setSlug(?string $slug): void
+    {
+        $this->slug = $slug;
     }
 }
