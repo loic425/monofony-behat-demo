@@ -4,6 +4,7 @@ import './shim-semantic-ui';
 import 'sylius/ui/js/app';
 import 'sylius/ui/js/sylius-auto-complete';
 
+import './slug';
 import './app-date-time-picker';
 import './app-images-preview';
 import './sylius-compound-form-errors';

@@ -46,6 +46,7 @@
         "symfony/runtime": "^5.4 || ^6.0",
         "symfony/security-bundle": "6.1.*",
         "symfony/serializer": "^5.4 || ^6.0",
+        "symfony/string": "6.1.*",
         "symfony/templating": "^5.4 || ^6.0",
         "symfony/translation": "^5.4 || ^6.0",
         "symfony/twig-bundle": "6.1.*",

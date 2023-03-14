@@ -26,6 +26,13 @@ use Symfony\Component\Validator\Constraints\NotBlank;
     templates: 'backend/crud',
     grid: 'app_book',
     except: ['show'],
+    vars: [
+        'all' => [
+            'templates' => [
+                'form' => 'backend/book/_form.html.twig',
+            ],
+        ],
+    ],
 )]
 #[ApiResource(
     normalizationContext: ['groups' => 'book:read']

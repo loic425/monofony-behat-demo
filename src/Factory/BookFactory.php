@@ -49,6 +49,7 @@ final class BookFactory extends ModelFactory
     {
         return [
             'name' => ucfirst(self::faker()->words(3, true)),
+            'slug' => self::faker()->slug(),
         ];
     }
 

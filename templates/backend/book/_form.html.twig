@@ -1,0 +1,6 @@
+{{ form_row(form.name) }}
+{{ form_row(form.slug, {
+    'attr': {
+        'data-url': path('app_backend_book_generate_slug', {'name': '__name__'})
+    }
+} ) }}
