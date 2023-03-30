@@ -85,7 +85,7 @@
         "symfony/maker-bundle": "^1.48",
         "symfony/phpunit-bridge": "^5.4 || ^6.0",
         "symfony/web-profiler-bundle": "^5.4 || ^6.0",
-        "vimeo/psalm": "^4.22"
+        "vimeo/psalm": "^5.9"
     },
     "config": {
         "allow-plugins": {
